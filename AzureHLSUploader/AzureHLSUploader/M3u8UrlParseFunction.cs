@@ -25,13 +25,14 @@ namespace AzureHLSUploader
                                 [Queue(queueName: "preloadqueue", Connection = "AzureWebJobsStorage")]CloudQueue preloadqueue,
                                 TraceWriter log)
         {
-            log.Info($"------- Queue trigger function processed: {url}");
+            log.Info($"------- M3U8 trigger: {url}");
 
             M3u8Parser parser;
             try
             {
                 parser = new M3u8Parser(url);
                 var entry = await parser.ParseEntry();
+
                 // log first 
                 logtable.CreateIfNotExists();
                 M3u8PaserLogEntry entrylog = new M3u8PaserLogEntry(entry.Path, entry.Filename);
@@ -116,7 +117,7 @@ namespace AzureHLSUploader
         private async static Task UploadBlob(M3u8Entry entry)
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
-                                CloudConfigurationManager.GetSetting("TargetStorageAccount"));
+                                CloudConfigurationManager.GetSetting("AzureWebJobsStorage"));
 
             // Create the blob client.
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
