@@ -67,6 +67,7 @@
     <Compile Include="Models\PreloadItem.cs" />
     <Compile Include="Models\UploadItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils\EscapeTablekey.cs" />
     <Compile Include="Utils\RetryHelper.cs" />
   </ItemGroup>
   <ItemGroup>

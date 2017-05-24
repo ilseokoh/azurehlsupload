@@ -22,7 +22,6 @@ namespace AzureHLSUploader
         public async static Task Run([QueueTrigger("m3u8queue", Connection = "AzureWebJobsStorage")]string url,
                                 [Table(tableName: "m3u8log", Connection = "AzureWebJobsStorage")]CloudTable logtable,
                                 [Queue(queueName: "uploadqueue", Connection = "AzureWebJobsStorage")]CloudQueue uploadqueue,
-                                [Queue(queueName: "preloadqueue", Connection = "AzureWebJobsStorage")]CloudQueue preloadqueue,
                                 TraceWriter log)
         {
             log.Info($"------- M3U8 trigger: {url}");
@@ -30,13 +29,15 @@ namespace AzureHLSUploader
             M3u8Parser parser;
             try
             {
+                if (!url.ToLower().EndsWith(".m3u8")) throw new ArgumentException("url must be m3u8.");
+
                 parser = new M3u8Parser(url);
                 var entry = await parser.ParseEntry();
 
                 // log first 
                 logtable.CreateIfNotExists();
-                M3u8PaserLogEntry entrylog = new M3u8PaserLogEntry(entry.Path, entry.Filename);
-                entrylog.Url = entry.Url;
+
+                M3u8PaserLogEntry entrylog = new M3u8PaserLogEntry(entry.Url);
                 entrylog.TsCount = entry.Playlists.Sum(x => x.TsFiles.Count);
                 entrylog.BitrateCount = entry.Playlists.Count;
                 TableOperation insertOperation = TableOperation.InsertOrMerge(entrylog);
@@ -48,36 +49,28 @@ namespace AzureHLSUploader
                 {
                     await UploadBlob(entry);
                 });
+
                 entrylog.IsPlaylistUploadComplete = true;
                 logtable.Execute(insertOperation);
 
-                // Enqueue ts files (30)
-                // retry 3 times with 1 sec delay
-                await RetryHelper.RetryOnExceptionAsync(3, TimeSpan.FromSeconds(1), async () =>
-                {
-                    await QueueUploadItems(entry, uploadqueue);
-                });
-                entrylog.IsUploadQueueComplete = true;
-                logtable.Execute(insertOperation);
+                // queue upload request 
+                int uploadrequestcount = await QueueUploadItems(entry, uploadqueue, entrylog);
 
-                // Enueue pre-load files (10)
-                // retry 3 times with 1 sec delay
-                await RetryHelper.RetryOnExceptionAsync(3, TimeSpan.FromSeconds(1), async () =>
-                {
-                    await QueuePreloadItems(entry, preloadqueue);
-                });
-                entrylog.IsPreloadQueueComplete = true;
+                if (uploadrequestcount != entrylog.TsCount) throw new InvalidOperationException("Difference between requested count and ts files for upload.");
+                entrylog.IsUploadQueueComplete = true;
                 logtable.Execute(insertOperation);
             }
             catch(Exception ex)
             {
-                log.Info("--------- " + ex.Message);
+                log.Info("***** " + ex.Message);
             }
         }
 
-        private async static Task QueueUploadItems(M3u8Entry entry, CloudQueue uploadqueue)
+        private async static Task<int> QueueUploadItems(M3u8Entry entry, CloudQueue uploadqueue, M3u8PaserLogEntry entrylog)
         {
-            int pagesize = 30;
+            int pagesize = 10;
+            int reqcount = 0;
+
             await uploadqueue.CreateIfNotExistsAsync();
 
             var baseurl = entry.BaseUrl + entry.Path;
@@ -87,43 +80,45 @@ namespace AzureHLSUploader
                 int totalpages = (int)Math.Ceiling(count);
                 for(var i = 0; i < totalpages ; i++)
                 {
-                    List<string> items = new List<string>();
-                    CloudQueueMessage message = new CloudQueueMessage(JsonConvert.SerializeObject(playlist.TsFiles.Skip(i * pagesize).Take(pagesize).Select(x => baseurl + "/" + x).ToArray()));
+                    UploadItem uploaditems = new UploadItem
+                    {
+                        Items = playlist.TsFiles.OrderBy(x => x).Skip(i * pagesize).Take(pagesize).Select(x => baseurl + "/" + x).ToList(),
+                        Url = entry.Url
+                    };
+
+                    // First page needs preload
+                    if (i == 0)
+                    {
+                        uploaditems.NeedPreload = true;
+                        entrylog.PreloadedTsCount += uploaditems.Items.Count;
+                    }
+                    else uploaditems.NeedPreload = false; 
+
+                    CloudQueueMessage message = new CloudQueueMessage(JsonConvert.SerializeObject(uploaditems));
 
                     // retry 3 times with 1 sec delay
                     await RetryHelper.RetryOnExceptionAsync(3, TimeSpan.FromSeconds(1), async () =>
                     {
                         await uploadqueue.AddMessageAsync(message);
                     });
+
+                    reqcount += uploaditems.Items.Count();
                 }
             }
-        }
-
-        private async static Task QueuePreloadItems(M3u8Entry entry, CloudQueue preloadqueue)
-        {
-            int pagesize = 10;
-            await preloadqueue.CreateIfNotExistsAsync();
-
-            var baseurl = entry.BaseUrl + entry.Path;
-            // Highest bitrate
-            var selectedList = entry.Playlists.OrderByDescending(x => x.Bandwidth).Take(2);
-            foreach (var playlist in selectedList)
-            {
-                CloudQueueMessage message = new CloudQueueMessage(JsonConvert.SerializeObject(playlist.TsFiles.OrderBy(x => x).Take(pagesize).Select(x => baseurl + "/" + x).ToArray()));
-                await preloadqueue.AddMessageAsync(message);
-            }
+            return reqcount;
         }
 
         private async static Task UploadBlob(M3u8Entry entry)
         {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
-                                CloudConfigurationManager.GetSetting("AzureWebJobsStorage"));
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("AzureWebJobsStorage"));
 
             // Create the blob client.
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
             // Retrieve reference to a previously created container.
             CloudBlobContainer container = blobClient.GetContainerReference("webroot");
+            await container.CreateIfNotExistsAsync();
+
             string path = entry.Path;
             if (path.StartsWith("/")) path = path.Substring(1);
 
@@ -138,19 +133,26 @@ namespace AzureHLSUploader
                 }
             }
 
+            // upload itself. 
+            using (HttpClient client = new HttpClient())
+            {
+                var stream = await client.GetStreamAsync(entry.Url);
+                CloudBlockBlob blockBlob = container.GetBlockBlobReference(path + "/" + entry.Filename);
+                await blockBlob.UploadFromStreamAsync(stream);
+            }
+
         }
     }
 
     public class M3u8PaserLogEntry: TableEntity
     {
-
-        public M3u8PaserLogEntry(string path, string filename)
+        public M3u8PaserLogEntry(string url)
         {
-            this.PartitionKey = path.Replace('/','_');
-            this.RowKey = filename;
+            this.PartitionKey = "m3u8";
+            this.RowKey = EscapeTablekey.Replace(url);
+
             IsPlaylistUploadComplete = false;
             IsUploadQueueComplete = false;
-            IsPreloadQueueComplete = false;
         }
 
         public M3u8PaserLogEntry() { }
@@ -161,12 +163,15 @@ namespace AzureHLSUploader
 
         public bool IsUploadQueueComplete { get; set; }
 
-        public bool IsPreloadQueueComplete { get; set; }
+        public int BitrateCount { get; set; }
 
         public int TsCount { get; set; }
 
-        public int BitrateCount { get; set; }
+        public int UploadedTsCount { get; set; }
 
-        public int InsertedCount { get; set; }
+        public int PreloadRequestCount { get; set; }
+
+        public int PreloadedTsCount { get; set; }
     }
+
 }

@@ -8,6 +8,10 @@ namespace AzureHLSUploader.Models
 {
     public class UploadItem
     {
+        public string Url { get; set; }
 
+        public bool NeedPreload { get; set; }
+
+        public List<string> Items { get; set; }
     }
 }

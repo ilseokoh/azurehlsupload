@@ -1,7 +1,7 @@
 {
     "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=hlsoriginstorage;AccountKey=iCu4iWNzppEJs/ngLM+QjAHDa3f+Af34Evn+yntYWFwRkM6Es0QesROfXcl3GrYuWrszeC7pD/eVgQ+UPT+P7A==;EndpointSuffix=core.windows.net",
-    "AzureWebJobsDashboard": "DefaultEndpointsProtocol=https;AccountName=hlsoriginstorage;AccountKey=iCu4iWNzppEJs/ngLM+QjAHDa3f+Af34Evn+yntYWFwRkM6Es0QesROfXcl3GrYuWrszeC7pD/eVgQ+UPT+P7A==;EndpointSuffix=core.windows.net"
+    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=uploadtarget;AccountKey=AzdBMGwygYqoLwoPfWLBlkdWflcvDas1SHp/emlLW8M/kabqO0zNITyojBC08nDzwEX2/giCDGdwIRJInqDnCg==;EndpointSuffix=core.windows.net",
+    "AzureWebJobsDashboard": "DefaultEndpointsProtocol=https;AccountName=uploadtarget;AccountKey=AzdBMGwygYqoLwoPfWLBlkdWflcvDas1SHp/emlLW8M/kabqO0zNITyojBC08nDzwEX2/giCDGdwIRJInqDnCg==;EndpointSuffix=core.windows.net"
   }
 }

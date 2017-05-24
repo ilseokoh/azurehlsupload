@@ -59,8 +59,6 @@ namespace AzureHLSUploader
 
                                 switch(name.Trim().ToUpper())
                                 {
-                                    case "EXT-X-VERSION":
-                                        break;
                                     case "EXT-X-STREAM-INF":
                                         var filename = lines[i + 1];
                                         var metainfo = value.Split(',');

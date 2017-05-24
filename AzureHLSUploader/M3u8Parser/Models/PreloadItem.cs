@@ -8,5 +8,8 @@ namespace AzureHLSUploader.Models
 {
     public class PreloadItem
     {
+        public string Url { get; set; }
+
+        public List<string> Items { get; set; }
     }
 }
