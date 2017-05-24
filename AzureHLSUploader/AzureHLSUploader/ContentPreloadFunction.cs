@@ -69,7 +69,7 @@ namespace AzureHLSUploader
                     SubscriptionId = CloudConfigurationManager.GetSetting("SubscriptionID")
                 };
 
-                cdn.Endpoints.LoadContent("OriginShieldGroup", "ODKOriginShield", "odkoriginshield", pathitems);
+                cdn.Endpoints.LoadContent(CloudConfigurationManager.GetSetting("ResourceGroup"), CloudConfigurationManager.GetSetting("CDNProfileName"), CloudConfigurationManager.GetSetting("CDNEndpointName"), pathitems);
             }
             catch(Exception ex)
             {
@@ -88,17 +88,17 @@ namespace AzureHLSUploader
             var m3u8entrylog = rootlogtable.ExecuteQuery(entryquery).FirstOrDefault();
 
             // Count completed items. 
-            TableQuery<M3u8PaserLogEntry> countquery = new TableQuery<M3u8PaserLogEntry>().Where(
+            TableQuery<PreloadLogEntry> countquery = new TableQuery<PreloadLogEntry>().Where(
                 TableQuery.CombineFilters(
                     TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, EscapeTablekey.Replace(uploaditem.Url)),
                     TableOperators.And,
                     TableQuery.GenerateFilterConditionForBool("IsPreloadComplete", QueryComparisons.Equal, true))
                );
 
-            var uploadcount = logtable.ExecuteQuery(countquery).Count();
+            var preloadcount = logtable.ExecuteQuery(countquery).Sum(x => x.CompleteCount);
 
             if (m3u8entrylog == null) throw new InvalidOperationException("there is no m3u8 entry log on the table.");
-            m3u8entrylog.PreloadedTsCount = uploadcount;
+            m3u8entrylog.PreloadedTsCount = preloadcount;
 
             TableOperation updateOperation = TableOperation.InsertOrMerge(m3u8entrylog);
             rootlogtable.Execute(updateOperation);
@@ -144,6 +144,8 @@ namespace AzureHLSUploader
             this.CompleteCount = count;
             IsPreloadComplete = false;
         }
+
+        public PreloadLogEntry() { }
 
         public bool IsPreloadComplete { get; set; }
 

@@ -6,6 +6,9 @@
     "ClientId": "{ClientId}",
     "ClientSecret": "{ClientSecret}",
     "TenantId": "{TenantId}",
-    "SubscriptionID": "{SubscriptionID}"
+    "SubscriptionID": "{SubscriptionID}",
+    "ResourceGroup": "{ResourceGroup}",
+    "CDNProfileName": "{CDNProfileName}",
+    "CDNEndpointName": "{CDNEndpointName}"
   }
 }

@@ -76,7 +76,7 @@ namespace AzureHLSUploader
             var m3u8entrylog = rootlogtable.ExecuteQuery(entryquery).FirstOrDefault();
 
             // Count completed items. 
-            TableQuery<M3u8PaserLogEntry> countquery = new TableQuery<M3u8PaserLogEntry>().Where(
+            TableQuery<UploadLogEntry> countquery = new TableQuery<UploadLogEntry>().Where(
                 TableQuery.CombineFilters(
                     TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, EscapeTablekey.Replace(uploaditem.Url)),
                     TableOperators.And,
@@ -137,6 +137,8 @@ namespace AzureHLSUploader
 
             IsUploadComplete = false;
         }
+
+        public UploadLogEntry() { }
 
         public bool IsUploadComplete { get; set; }
     }
