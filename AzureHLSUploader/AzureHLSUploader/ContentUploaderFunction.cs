@@ -29,7 +29,7 @@ namespace AzureHLSUploader
             try
             {
                 uploaditem = JsonConvert.DeserializeObject<UploadItem>(queueitem);
-                log.Info($"----- Upload Contnent: {uploaditem.Items.Count}");
+                log.Info($"----- Start to upload Contnent: {uploaditem.Items.Count}");
             }
             catch(Exception ex)
             {

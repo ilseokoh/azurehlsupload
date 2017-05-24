@@ -90,7 +90,7 @@ namespace AzureHLSUploader
                     if (i == 0)
                     {
                         uploaditems.NeedPreload = true;
-                        entrylog.PreloadedTsCount += uploaditems.Items.Count;
+                        entrylog.PreloadRequestCount += uploaditems.Items.Count;
                     }
                     else uploaditems.NeedPreload = false; 
 

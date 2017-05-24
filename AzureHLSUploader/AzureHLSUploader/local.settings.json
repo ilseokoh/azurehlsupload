@@ -1,7 +1,11 @@
 {
-    "IsEncrypted": false,
+  "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=uploadtarget;AccountKey=AzdBMGwygYqoLwoPfWLBlkdWflcvDas1SHp/emlLW8M/kabqO0zNITyojBC08nDzwEX2/giCDGdwIRJInqDnCg==;EndpointSuffix=core.windows.net",
-    "AzureWebJobsDashboard": "DefaultEndpointsProtocol=https;AccountName=uploadtarget;AccountKey=AzdBMGwygYqoLwoPfWLBlkdWflcvDas1SHp/emlLW8M/kabqO0zNITyojBC08nDzwEX2/giCDGdwIRJInqDnCg==;EndpointSuffix=core.windows.net"
+    "AzureWebJobsStorage": "{storage connection string}",
+    "AzureWebJobsDashboard": "{}",
+    "ClientId": "{ClientId}",
+    "ClientSecret": "{ClientSecret}",
+    "TenantId": "{TenantId}",
+    "SubscriptionID": "{SubscriptionID}"
   }
 }
