@@ -21,12 +21,14 @@ namespace AzureHLSUploader
                                                             [Queue(queueName: "m3u8queue", Connection = "AzureWebJobsStorage")]CloudQueue uploadqueue,
                                                             TraceWriter log)
         {
-            log.Info("request upload");
+            
 
             var body = await req.Content.ReadAsStringAsync();
             try
             {
                 var contentPaths = JsonConvert.DeserializeObject<List<string>>(body);
+
+                log.Info($"request upload : {contentPaths.Count}");
 
                 foreach (var path in contentPaths)
                 {
@@ -39,6 +41,8 @@ namespace AzureHLSUploader
                     data = "",
                     message = $"requested {contentPaths.Count} content(s)"
                 };
+
+                log.Info($"response : {JsonConvert.SerializeObject(response)}");
 
 
                 // Fetching the name from the path parameter in the request URL

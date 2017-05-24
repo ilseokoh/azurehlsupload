@@ -53,12 +53,16 @@ namespace AzureHLSUploader
                 entrylog.IsPlaylistUploadComplete = true;
                 logtable.Execute(insertOperation);
 
+                log.Info($"Upload all m3u8 complete.");
+
                 // queue upload request 
                 int uploadrequestcount = await QueueUploadItems(entry, uploadqueue, entrylog);
 
                 if (uploadrequestcount != entrylog.TsCount) throw new InvalidOperationException("Difference between requested count and ts files for upload.");
                 entrylog.IsUploadQueueComplete = true;
                 logtable.Execute(insertOperation);
+
+                log.Info($"Upload Request complete.");
             }
             catch(Exception ex)
             {

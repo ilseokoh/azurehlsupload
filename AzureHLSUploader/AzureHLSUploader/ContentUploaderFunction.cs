@@ -56,6 +56,7 @@ namespace AzureHLSUploader
                     entrylog.IsUploadComplete = true;
                     logtable.Execute(insertOperation);
 
+                    log.Info($"upload complete: {item}");
                     
                 }
                 catch(Exception ex)
@@ -68,8 +69,9 @@ namespace AzureHLSUploader
             if (uploaditem.NeedPreload == true)
             {
                 await QueuePreloadItems(uploaditem, preloadqueue);
-                log.Info($"------ Reqeust preload: {uploaditem.Items.Count}");
+                log.Info($"Reqeust preload: {uploaditem.Items.Count}");
             }
+            log.Info($"----- All complete: {uploaditem.Items.Count}");
 
             // Check result and log to root table log 
             TableQuery<M3u8PaserLogEntry> entryquery = new TableQuery<M3u8PaserLogEntry>().Where(TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, EscapeTablekey.Replace(uploaditem.Url)));

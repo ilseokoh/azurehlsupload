@@ -51,6 +51,7 @@ namespace AzureHLSUploader
             {
                 Uri uri = new Uri(url);
                 pathitems.Add(uri.AbsolutePath);
+                log.Info($"Preload requested : {uri.AbsolutePath}");
             }
 
             // create log table
@@ -61,6 +62,8 @@ namespace AzureHLSUploader
             TableOperation insertOperation = TableOperation.InsertOrMerge(entrylog);
             logtable.Execute(insertOperation);
 
+            DateTime startTime = DateTime.Now;
+
             try
             {
                 // Request preloading 
@@ -70,6 +73,9 @@ namespace AzureHLSUploader
                 };
 
                 cdn.Endpoints.LoadContent(CloudConfigurationManager.GetSetting("ResourceGroup"), CloudConfigurationManager.GetSetting("CDNProfileName"), CloudConfigurationManager.GetSetting("CDNEndpointName"), pathitems);
+
+                DateTime endTime = DateTime.Now;
+                log.Info($"preload successfully: {endTime.Subtract(startTime).Minutes}:{endTime.Subtract(startTime).Seconds} long");
             }
             catch(Exception ex)
             {
