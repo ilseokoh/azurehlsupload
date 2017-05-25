@@ -41,28 +41,35 @@ namespace AzureHLSUploader
 
             foreach (var item in uploaditem.Items)
             {
+                // log
                 UploadLogEntry entrylog = new UploadLogEntry(uploaditem.Url, item);
-                TableOperation insertOperation = TableOperation.InsertOrMerge(entrylog);
-                logtable.Execute(insertOperation);
 
                 try
                 {
+                    DateTime startTime = DateTime.UtcNow;
                     // retry 3 times with 1 sec delay
                     await RetryHelper.RetryOnExceptionAsync(3, TimeSpan.FromSeconds(1), async () =>
                     {
                         await UploadBlob(item);
                     });
 
-                    entrylog.IsUploadComplete = true;
-                    logtable.Execute(insertOperation);
+                    entrylog.IsSuccess = true;
+                    entrylog.Duration = DateTime.UtcNow.Subtract(startTime).TotalSeconds;
 
                     log.Info($"upload complete: {item}");
                     
                 }
                 catch(Exception ex)
                 {
+                    // error log
+                    entrylog.IsSuccess = false;
+                    entrylog.ErrorMessage = ex.Message;
+
                     log.Error($"****** Upload failed: {item} : {ex.Message}");
                 }
+
+                TableOperation insertOperation = TableOperation.InsertOrMerge(entrylog);
+                logtable.Execute(insertOperation);
             }
 
             // Reqeust preload here! 
@@ -82,7 +89,7 @@ namespace AzureHLSUploader
                 TableQuery.CombineFilters(
                     TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, EscapeTablekey.Replace(uploaditem.Url)),
                     TableOperators.And,
-                    TableQuery.GenerateFilterConditionForBool("IsUploadComplete", QueryComparisons.Equal, true))
+                    TableQuery.GenerateFilterConditionForBool("IsSuccess", QueryComparisons.Equal, true))
                );
 
             var uploadcount = logtable.ExecuteQuery(countquery).Count();
@@ -137,12 +144,18 @@ namespace AzureHLSUploader
             this.PartitionKey = EscapeTablekey.Replace(rooturl);
             this.RowKey = EscapeTablekey.Replace(url);
 
-            IsUploadComplete = false;
+            IsSuccess = false;
+            ErrorMessage = "";
+            Duration = 0;
         }
 
         public UploadLogEntry() { }
 
-        public bool IsUploadComplete { get; set; }
+        public bool IsSuccess { get; set; }
+
+        public double Duration { get; set; }
+
+        public string ErrorMessage { get; set; }
     }
 
     

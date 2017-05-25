@@ -59,9 +59,6 @@ namespace AzureHLSUploader
 
             // Log first
             PreloadLogEntry entrylog = new PreloadLogEntry(uploaditem.Url, pathitems.Count);
-            TableOperation insertOperation = TableOperation.InsertOrMerge(entrylog);
-            logtable.Execute(insertOperation);
-
             DateTime startTime = DateTime.Now;
 
             try
@@ -75,17 +72,24 @@ namespace AzureHLSUploader
                 cdn.Endpoints.LoadContent(CloudConfigurationManager.GetSetting("ResourceGroup"), CloudConfigurationManager.GetSetting("CDNProfileName"), CloudConfigurationManager.GetSetting("CDNEndpointName"), pathitems);
 
                 DateTime endTime = DateTime.Now;
-                log.Info($"preload successfully: {endTime.Subtract(startTime).Minutes}:{endTime.Subtract(startTime).Seconds} long");
+                // complete
+                entrylog.IsSuccess = true;
+                entrylog.Duration = endTime.Subtract(startTime).TotalSeconds;
+                log.Info($"preload successfully: {entrylog.Duration} seconds");
             }
             catch(Exception ex)
             {
                 log.Info($"***** Fail to preload: {ex.Message}");
 
+                // fail log
+                entrylog.IsSuccess = false;
+                entrylog.ErrorMessage = ex.Message;
+
                 await QueuePreloadItems(uploaditem, preloadqueue);
             }
 
-            // complete
-            entrylog.IsPreloadComplete = true;
+            // log now
+            TableOperation insertOperation = TableOperation.InsertOrMerge(entrylog);
             logtable.Execute(insertOperation);
 
             // 
@@ -98,7 +102,7 @@ namespace AzureHLSUploader
                 TableQuery.CombineFilters(
                     TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, EscapeTablekey.Replace(uploaditem.Url)),
                     TableOperators.And,
-                    TableQuery.GenerateFilterConditionForBool("IsPreloadComplete", QueryComparisons.Equal, true))
+                    TableQuery.GenerateFilterConditionForBool("IsSuccess", QueryComparisons.Equal, true))
                );
 
             var preloadcount = logtable.ExecuteQuery(countquery).Sum(x => x.CompleteCount);
@@ -148,13 +152,20 @@ namespace AzureHLSUploader
             this.PartitionKey = "preload";
             this.RowKey = EscapeTablekey.Replace(rooturl);
             this.CompleteCount = count;
-            IsPreloadComplete = false;
+
+            IsSuccess = false;
+            Duration = 0;
+            ErrorMessage = "";
         }
 
         public PreloadLogEntry() { }
 
-        public bool IsPreloadComplete { get; set; }
+        public bool IsSuccess { get; set; }
 
         public int CompleteCount { get; set; }
+
+        public double Duration { get; set; }
+
+        public string ErrorMessage { get; set; }
     }
 }
