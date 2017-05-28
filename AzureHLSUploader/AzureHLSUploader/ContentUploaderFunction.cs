@@ -85,17 +85,17 @@ namespace AzureHLSUploader
             var m3u8entrylog = rootlogtable.ExecuteQuery(entryquery).FirstOrDefault();
 
             // Count completed items. 
-            TableQuery<UploadLogEntry> countquery = new TableQuery<UploadLogEntry>().Where(
-                TableQuery.CombineFilters(
-                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, EscapeTablekey.Replace(uploaditem.Url)),
-                    TableOperators.And,
-                    TableQuery.GenerateFilterConditionForBool("IsSuccess", QueryComparisons.Equal, true))
-               );
+            TableQuery<UploadLogEntry> uploaditemquery = new TableQuery<UploadLogEntry>().Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, EscapeTablekey.Replace(uploaditem.Url)));
 
-            var uploadcount = logtable.ExecuteQuery(countquery).Count();
+            var uploadcount = logtable.ExecuteQuery(uploaditemquery).Where(x => x.IsSuccess == true).Count();
+            var errorcount = logtable.ExecuteQuery(uploaditemquery).Where(x => x.IsSuccess == false).Count();
 
             if (m3u8entrylog == null) throw new InvalidOperationException("there is no m3u8 entry log on the table.");
             m3u8entrylog.UploadedTsCount = uploadcount;
+            // check upload complete
+            if (m3u8entrylog.TsCount == uploadcount) m3u8entrylog.IsUploadComplete = true;
+            // check error count
+            if (errorcount > 0) m3u8entrylog.HasError = true;
 
             TableOperation updateOperation = TableOperation.InsertOrMerge(m3u8entrylog);
             rootlogtable.Execute(updateOperation);

@@ -19,41 +19,61 @@ namespace AzureHLSUploader
     public static class M3u8UrlParseFunction
     {
         [FunctionName("M3u8UrlParser")]
-        public async static Task Run([QueueTrigger("m3u8queue", Connection = "AzureWebJobsStorage")]string url,
+        public async static Task Run([QueueTrigger("m3u8queue", Connection = "AzureWebJobsStorage")]string req,
                                 [Table(tableName: "m3u8log", Connection = "AzureWebJobsStorage")]CloudTable logtable,
                                 [Queue(queueName: "uploadqueue", Connection = "AzureWebJobsStorage")]CloudQueue uploadqueue,
+                                [Table(tableName: "uploadlog", Connection = "AzureWebJobsStorage")]CloudTable uploadlog,
                                 TraceWriter log)
         {
-            log.Info($"------- M3U8 trigger: {url}");
+
+            RequestItem reqItem = null;
+            try
+            {
+                reqItem = JsonConvert.DeserializeObject<RequestItem>(req);
+                log.Info($"----- M3U8 Request: {reqItem.PrimaryUrl} (Secondary Url: {reqItem.SecondaryUrls.Count})");
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException("Message from queue has error", ex);
+            }
 
             M3u8Parser parser;
             try
             {
-                if (!url.ToLower().EndsWith(".m3u8")) throw new ArgumentException("url must be m3u8.");
+                if (!reqItem.PrimaryUrl.ToLower().EndsWith(".m3u8")) throw new ArgumentException("url must be m3u8.");
 
-                parser = new M3u8Parser(url);
+                parser = new M3u8Parser(reqItem.PrimaryUrl);
                 var entry = await parser.ParseEntry();
 
                 // log first 
                 logtable.CreateIfNotExists();
 
                 M3u8PaserLogEntry entrylog = new M3u8PaserLogEntry(entry.Url);
-                entrylog.TsCount = entry.Playlists.Sum(x => x.TsFiles.Count);
+                // root m3u8(1) + secondary m3u8 count + playlist count
+                entrylog.TsCount = entry.Playlists.Sum(x => x.TsFiles.Count) + reqItem.SecondaryUrls.Count + 1;
                 entrylog.BitrateCount = entry.Playlists.Count;
                 TableOperation insertOperation = TableOperation.InsertOrMerge(entrylog);
                 logtable.Execute(insertOperation);
 
                 // upload m3u8 files 
+                List<string> uploadItems = new List<string>(entry.Playlists.Select(x => x.Url)); 
+                foreach(var url in reqItem.SecondaryUrls)
+                {
+                    uploadItems.Add(url);
+                }
+                // itself 
+                uploadItems.Add(entry.Url);
+
                 // retry 3 times with 1 sec delay
                 await RetryHelper.RetryOnExceptionAsync(3, TimeSpan.FromSeconds(1), async () =>
                 {
-                    await UploadBlob(entry);
+                    await UploadBlob(uploadItems, uploadlog, entry.Url);
                 });
 
                 entrylog.IsPlaylistUploadComplete = true;
                 logtable.Execute(insertOperation);
 
-                log.Info($"Upload all m3u8 complete.");
+                log.Info($"Upload all playlist(m3u8) files complete.");
 
                 // queue upload request 
                 int uploadrequestcount = await QueueUploadItems(entry, uploadqueue, entrylog);
@@ -112,6 +132,47 @@ namespace AzureHLSUploader
             return reqcount;
         }
 
+        private async static Task UploadBlob(List<string> items, CloudTable uploadlog, string rootlogkey)
+        {
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("AzureWebJobsStorage"));
+
+            // Create the blob client.
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+            // Retrieve reference to a previously created container.
+            CloudBlobContainer container = blobClient.GetContainerReference("webroot");
+            await container.CreateIfNotExistsAsync();
+
+            foreach (var item in items)
+            {
+                // log
+                UploadLogEntry entrylog = new UploadLogEntry(rootlogkey, item);
+
+                Uri uri = new Uri(item);
+                var idx = uri.AbsolutePath.LastIndexOf('/');
+                var path = uri.AbsolutePath.Substring(1, idx);
+                var filename = uri.AbsolutePath.Substring(idx + 1);
+
+                DateTime startTime = DateTime.UtcNow;
+                
+
+                using (HttpClient client = new HttpClient())
+                {
+                    
+                    var stream = await client.GetStreamAsync(uri);
+                    // Retrieve reference to a blob named "myblob".
+                    CloudBlockBlob blockBlob = container.GetBlockBlobReference(path + "/" + filename);
+                    await blockBlob.UploadFromStreamAsync(stream);
+                }
+
+                entrylog.IsSuccess = true;
+                entrylog.Duration = DateTime.UtcNow.Subtract(startTime).TotalSeconds;
+
+                TableOperation insertOperation = TableOperation.InsertOrMerge(entrylog);
+                uploadlog.Execute(insertOperation);
+            }
+        }
+
         private async static Task UploadBlob(M3u8Entry entry)
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("AzureWebJobsStorage"));
@@ -157,6 +218,8 @@ namespace AzureHLSUploader
 
             IsPlaylistUploadComplete = false;
             IsUploadQueueComplete = false;
+            IsUploadComplete = false;
+            HasError = false;
         }
 
         public M3u8PaserLogEntry() { }
@@ -176,6 +239,10 @@ namespace AzureHLSUploader
         public int PreloadRequestCount { get; set; }
 
         public int PreloadedTsCount { get; set; }
+
+        public bool IsUploadComplete { get; set; }
+
+        public bool HasError { get; set; }
     }
 
 }

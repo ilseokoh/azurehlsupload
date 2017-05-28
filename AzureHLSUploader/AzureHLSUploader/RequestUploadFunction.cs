@@ -21,25 +21,23 @@ namespace AzureHLSUploader
                                                             [Queue(queueName: "m3u8queue", Connection = "AzureWebJobsStorage")]CloudQueue uploadqueue,
                                                             TraceWriter log)
         {
-            
-
             var body = await req.Content.ReadAsStringAsync();
             try
             {
-                var contentPaths = JsonConvert.DeserializeObject<List<string>>(body);
+                var requestItmes = JsonConvert.DeserializeObject<List<RequestItem>>(body);
 
-                log.Info($"request upload : {contentPaths.Count}");
+                log.Info($"request upload : {requestItmes.Count}");
 
-                foreach (var path in contentPaths)
+                foreach (var item in requestItmes)
                 {
-                    await uploadqueue.AddMessageAsync(new CloudQueueMessage(path));
+                    await uploadqueue.AddMessageAsync(new CloudQueueMessage(JsonConvert.SerializeObject(item)));
                 }
 
                 var response = new ApiResponse
                 {
                     status = "success",
                     data = "",
-                    message = $"requested {contentPaths.Count} content(s)"
+                    message = $"requested {requestItmes.Count} content(s)"
                 };
 
                 log.Info($"response : {JsonConvert.SerializeObject(response)}");
@@ -59,8 +57,6 @@ namespace AzureHLSUploader
 
                 return req.CreateResponse(HttpStatusCode.InternalServerError, errresponse, JsonMediaTypeFormatter.DefaultMediaType);
             }
-
-            
         }
     }
 
@@ -71,5 +67,12 @@ namespace AzureHLSUploader
         public object data { get; set; }
 
         public string message { get; set; }
+    }
+
+    public class RequestItem
+    {
+        public string PrimaryUrl { get; set; }
+
+        public List<string> SecondaryUrls { get; set; }
     }
 }
