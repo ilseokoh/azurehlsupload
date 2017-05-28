@@ -1,14 +1,14 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "{storage connection string}",
-    "AzureWebJobsDashboard": "{}",
-    "ClientId": "{ClientId}",
-    "ClientSecret": "{ClientSecret}",
-    "TenantId": "{TenantId}",
-    "SubscriptionID": "{SubscriptionID}",
-    "ResourceGroup": "{ResourceGroup}",
-    "CDNProfileName": "{CDNProfileName}",
-    "CDNEndpointName": "{CDNEndpointName}"
+    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=uploadtarget;AccountKey=AzdBMGwygYqoLwoPfWLBlkdWflcvDas1SHp/emlLW8M/kabqO0zNITyojBC08nDzwEX2/giCDGdwIRJInqDnCg==;EndpointSuffix=core.windows.net",
+    "AzureWebJobsDashboard": "DefaultEndpointsProtocol=https;AccountName=uploadtarget;AccountKey=AzdBMGwygYqoLwoPfWLBlkdWflcvDas1SHp/emlLW8M/kabqO0zNITyojBC08nDzwEX2/giCDGdwIRJInqDnCg==;EndpointSuffix=core.windows.net",
+    "ClientId": "2272c01c-0b97-4666-8837-646b6848f4ce",
+    "ClientSecret": "fHUtF4U2Lv6tIWc9N9e9Yhx7FtXf5JtKnLtTil+gX2s=",
+    "TenantId": "f265e9d3-c95e-4a06-94e3-91ba6b2bd491",
+    "SubscriptionID": "9fe5df43-5c39-4c57-99d5-264a41608b2e",
+    "ResourceGroup": "ODK-RG",
+    "CDNProfileName": "odkcdn",
+    "CDNEndpointName": "odkcdn"
   }
 }

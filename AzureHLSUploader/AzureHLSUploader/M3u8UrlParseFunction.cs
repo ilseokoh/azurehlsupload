@@ -30,7 +30,7 @@ namespace AzureHLSUploader
             try
             {
                 reqItem = JsonConvert.DeserializeObject<RequestItem>(req);
-                log.Info($"----- M3U8 Request: {reqItem.PrimaryUrl} (Secondary Url: {reqItem.SecondaryUrls.Count})");
+                log.Info($"----- M3U8 Request: {reqItem.primaryUrl} (Secondary Url: {reqItem.secondaryUrls.Count})");
             }
             catch (Exception ex)
             {
@@ -40,9 +40,9 @@ namespace AzureHLSUploader
             M3u8Parser parser;
             try
             {
-                if (!reqItem.PrimaryUrl.ToLower().EndsWith(".m3u8")) throw new ArgumentException("url must be m3u8.");
+                if (!reqItem.primaryUrl.ToLower().EndsWith(".m3u8")) throw new ArgumentException("url must be m3u8.");
 
-                parser = new M3u8Parser(reqItem.PrimaryUrl);
+                parser = new M3u8Parser(reqItem.primaryUrl);
                 var entry = await parser.ParseEntry();
 
                 // log first 
@@ -50,14 +50,14 @@ namespace AzureHLSUploader
 
                 M3u8PaserLogEntry entrylog = new M3u8PaserLogEntry(entry.Url);
                 // root m3u8(1) + secondary m3u8 count + playlist count
-                entrylog.TsCount = entry.Playlists.Sum(x => x.TsFiles.Count) + reqItem.SecondaryUrls.Count + 1;
+                entrylog.TsCount = entry.Playlists.Sum(x => x.TsFiles.Count) + reqItem.secondaryUrls.Count + 1;
                 entrylog.BitrateCount = entry.Playlists.Count;
                 TableOperation insertOperation = TableOperation.InsertOrMerge(entrylog);
                 logtable.Execute(insertOperation);
 
                 // upload m3u8 files 
                 List<string> uploadItems = new List<string>(entry.Playlists.Select(x => x.Url)); 
-                foreach(var url in reqItem.SecondaryUrls)
+                foreach(var url in reqItem.secondaryUrls)
                 {
                     uploadItems.Add(url);
                 }
@@ -215,6 +215,8 @@ namespace AzureHLSUploader
         {
             this.PartitionKey = "m3u8";
             this.RowKey = EscapeTablekey.Replace(url);
+
+            Url = url;
 
             IsPlaylistUploadComplete = false;
             IsUploadQueueComplete = false;

@@ -14,22 +14,14 @@ namespace AzureHLSUploader
 {
     public static class MonitorUploadFunction
     {
-        private static TableQuery entryquery;
-
         [FunctionName("MonitorUpload")]
-        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "status")]HttpRequestMessage req,
+        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "monitor")]HttpRequestMessage req,
                                                             [Table(tableName: "uploadlog", Connection = "AzureWebJobsStorage")]CloudTable logtable,
                                                             [Table(tableName: "m3u8log", Connection = "AzureWebJobsStorage")]CloudTable rootlogtable,
                                                             TraceWriter log)
         {
-            log.Info("C# HTTP trigger function processed a request.");
+            log.Info("Monitoring Upload.");
 
-            // Check result and log to root table log 
-            //TableQuery<M3u8PaserLogEntry> progressquery = new TableQuery<M3u8PaserLogEntry>().Where(TableQuery.GenerateFilterConditionForBool("IsUploadComplete", QueryComparisons.Equal, false));
-            //var ongoinglogs = rootlogtable.ExecuteQuery(progressquery).ToList();
-
-            //TableQuery<M3u8PaserLogEntry> errorquery = new TableQuery<M3u8PaserLogEntry>().Where(TableQuery.GenerateFilterConditionForBool("HasError", QueryComparisons.Equal, true));
-            //var errorlogs = rootlogtable.ExecuteQuery(errorquery).ToList();
             try
             {
                 TableQuery<M3u8PaserLogEntry> totalquery = new TableQuery<M3u8PaserLogEntry>();
@@ -49,7 +41,7 @@ namespace AzureHLSUploader
                         fileCount = x.TsCount,
                         completeCount = x.UploadedTsCount,
                         hasError = x.HasError,
-                        progress = (double)(x.UploadedTsCount / x.TsCount)
+                        progress = (x.TsCount == 0 ? 0 : ((decimal)x.UploadedTsCount / (decimal)x.TsCount))
                     }).ToList(),
                     errorList = errorLogs.Select(x => new itemStatus
                     {
@@ -57,7 +49,7 @@ namespace AzureHLSUploader
                         fileCount = x.TsCount,
                         completeCount = x.UploadedTsCount,
                         hasError = x.HasError,
-                        progress = (double)(x.UploadedTsCount / x.TsCount)
+                        progress = (x.TsCount == 0 ? 0 : ((decimal)x.UploadedTsCount / (decimal)x.TsCount))
                     }).ToList()
                 };
 
@@ -91,7 +83,7 @@ namespace AzureHLSUploader
 
         public int completeCount { get; set; }
 
-        public double progress { get; set; }
+        public decimal progress { get; set; }
 
         public bool hasError { get; set; }
     }
