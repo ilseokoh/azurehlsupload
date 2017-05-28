@@ -42,7 +42,7 @@ namespace AzureHLSUploader
                 {
                     status = "success",
                     data = "",
-                    message = $"requested: {requestItem}"
+                    message = $"requested: {requestItem.primaryUrl}"
                 };
 
                 log.Info($"response : {JsonConvert.SerializeObject(response)}");

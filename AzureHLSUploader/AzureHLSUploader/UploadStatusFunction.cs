@@ -9,6 +9,7 @@ using System;
 using Microsoft.WindowsAzure.Storage.Table;
 using M3u8Parser.Utils;
 using Newtonsoft.Json;
+using System.Net.Http.Formatting;
 
 namespace AzureHLSUploader
 {
@@ -25,6 +26,7 @@ namespace AzureHLSUploader
 
             try
             {
+                if (string.IsNullOrEmpty(url)) throw new ArgumentException("url is null");
                 if (!url.ToLower().EndsWith(".m3u8")) throw new ArgumentException("url must be m3u8.");
 
                 // Check result and log to root table log 
@@ -34,15 +36,15 @@ namespace AzureHLSUploader
                 var statusItem = new itemStatus
                 {
                     url = status.Url,
-                    fileCount = status.TsCount,
+                    fileCount = status.TotlaFileCount,
                     completeCount = status.UploadedTsCount,
                     hasError = status.HasError,
                 };
 
-                if (status.TsCount == 0) statusItem.progress = 0;
-                else statusItem.progress = ((decimal)status.UploadedTsCount / (decimal)status.TsCount);
+                if (status.TotlaFileCount == 0) statusItem.progress = 0;
+                else statusItem.progress = ((decimal)status.UploadedTsCount / (decimal)status.TotlaFileCount);
 
-                return req.CreateResponse(HttpStatusCode.OK, JsonConvert.SerializeObject(statusItem));
+                return req.CreateResponse(HttpStatusCode.OK, statusItem, JsonMediaTypeFormatter.DefaultMediaType);
             }
             catch (Exception ex)
             {

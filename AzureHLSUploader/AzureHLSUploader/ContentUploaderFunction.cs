@@ -93,7 +93,7 @@ namespace AzureHLSUploader
             if (m3u8entrylog == null) throw new InvalidOperationException("there is no m3u8 entry log on the table.");
             m3u8entrylog.UploadedTsCount = uploadcount;
             // check upload complete
-            if (m3u8entrylog.TsCount == uploadcount) m3u8entrylog.IsUploadComplete = true;
+            if (m3u8entrylog.TotlaFileCount == uploadcount) m3u8entrylog.IsUploadComplete = true;
             // check error count
             if (errorcount > 0) m3u8entrylog.HasError = true;
 

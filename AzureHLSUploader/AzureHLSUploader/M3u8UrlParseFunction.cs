@@ -50,7 +50,7 @@ namespace AzureHLSUploader
 
                 M3u8PaserLogEntry entrylog = new M3u8PaserLogEntry(entry.Url);
                 // root m3u8(1) + secondary m3u8 count + playlist count
-                entrylog.TsCount = entry.Playlists.Sum(x => x.TsFiles.Count) + reqItem.secondaryUrls.Count + 1;
+                entrylog.TotlaFileCount = entry.Playlists.Sum(x => x.TsFiles.Count) + entry.Playlists.Count + reqItem.secondaryUrls.Count + 1;
                 entrylog.BitrateCount = entry.Playlists.Count;
                 TableOperation insertOperation = TableOperation.InsertOrMerge(entrylog);
                 logtable.Execute(insertOperation);
@@ -78,7 +78,6 @@ namespace AzureHLSUploader
                 // queue upload request 
                 int uploadrequestcount = await QueueUploadItems(entry, uploadqueue, entrylog);
 
-                if (uploadrequestcount != entrylog.TsCount) throw new InvalidOperationException("Difference between requested count and ts files for upload.");
                 entrylog.IsUploadQueueComplete = true;
                 logtable.Execute(insertOperation);
 
@@ -234,7 +233,7 @@ namespace AzureHLSUploader
 
         public int BitrateCount { get; set; }
 
-        public int TsCount { get; set; }
+        public int TotlaFileCount { get; set; }
 
         public int UploadedTsCount { get; set; }
 

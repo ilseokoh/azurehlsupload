@@ -9,6 +9,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System;
+using System.Net.Http.Formatting;
 
 namespace AzureHLSUploader
 {
@@ -38,22 +39,22 @@ namespace AzureHLSUploader
                     ongoingList = ongoingLogs.Select(x => new itemStatus
                     {
                         url = x.Url,
-                        fileCount = x.TsCount,
+                        fileCount = x.TotlaFileCount,
                         completeCount = x.UploadedTsCount,
                         hasError = x.HasError,
-                        progress = (x.TsCount == 0 ? 0 : ((decimal)x.UploadedTsCount / (decimal)x.TsCount))
+                        progress = (x.TotlaFileCount == 0 ? 0 : ((decimal)x.UploadedTsCount / (decimal)x.TotlaFileCount))
                     }).ToList(),
                     errorList = errorLogs.Select(x => new itemStatus
                     {
                         url = x.Url,
-                        fileCount = x.TsCount,
+                        fileCount = x.TotlaFileCount,
                         completeCount = x.UploadedTsCount,
                         hasError = x.HasError,
-                        progress = (x.TsCount == 0 ? 0 : ((decimal)x.UploadedTsCount / (decimal)x.TsCount))
+                        progress = (x.TotlaFileCount == 0 ? 0 : ((decimal)x.UploadedTsCount / (decimal)x.TotlaFileCount))
                     }).ToList()
                 };
 
-                return req.CreateResponse(HttpStatusCode.OK, JsonConvert.SerializeObject(uploadStatus));
+                return req.CreateResponse(HttpStatusCode.OK, uploadStatus, JsonMediaTypeFormatter.DefaultMediaType);
             }
             catch(Exception ex)
             {
