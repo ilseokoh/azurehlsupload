@@ -144,10 +144,14 @@ namespace AzureHLSUploader
             this.PartitionKey = EscapeTablekey.Replace(rooturl);
             this.RowKey = EscapeTablekey.Replace(url);
 
+            this.Url = url;
+
             IsSuccess = false;
             ErrorMessage = "";
             Duration = 0;
         }
+
+        public string Url { get; set; }
 
         public UploadLogEntry() { }
 
