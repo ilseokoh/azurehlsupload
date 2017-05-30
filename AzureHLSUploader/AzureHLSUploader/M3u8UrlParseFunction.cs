@@ -110,8 +110,8 @@ namespace AzureHLSUploader
                     };
 
                     // preload for 10 pages
-                    if (i < 10)
-                    //if (i < 2)
+                    //if (i < 10)
+                    if (i < 2)
                     {
                         uploaditems.NeedPreload = true;
                         entrylog.PreloadRequestCount += uploaditems.Items.Count;

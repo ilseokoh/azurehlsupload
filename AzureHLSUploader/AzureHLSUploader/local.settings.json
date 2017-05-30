@@ -1,15 +1,8 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=uploadtarget;AccountKey=AzdBMGwygYqoLwoPfWLBlkdWflcvDas1SHp/emlLW8M/kabqO0zNITyojBC08nDzwEX2/giCDGdwIRJInqDnCg==;EndpointSuffix=core.windows.net",
-    "AzureWebJobsDashboard": "DefaultEndpointsProtocol=https;AccountName=uploadtarget;AccountKey=AzdBMGwygYqoLwoPfWLBlkdWflcvDas1SHp/emlLW8M/kabqO0zNITyojBC08nDzwEX2/giCDGdwIRJInqDnCg==;EndpointSuffix=core.windows.net",
-    "ClientId": "{ClientId}",
-    "ClientSecret": "{ClientSecret}",
-    "TenantId": "{TenantId}",
-    "SubscriptionID": "{SubscriptionID}",
-    "ResourceGroup": "{ResourceGroup}",
-    "CDNProfileName": "{CDNProfileName}",
-    "CDNEndpointName": "{CDNEndpointName}",
+    "AzureWebJobsStorage": "{AzureWebJobsStorage}",
+    "AzureWebJobsDashboard": "{AzureWebJobsDashboard}",
     "VerizonConsoleID": "{VerizonConsoleID}",
     "VerizonConsoleKey": "{VerizonConsoleKey}",
     "VerizonCDNHostname": "{VerizonCDNHostname}"
