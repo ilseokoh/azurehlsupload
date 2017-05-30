@@ -9,6 +9,9 @@
     "SubscriptionID": "9fe5df43-5c39-4c57-99d5-264a41608b2e",
     "ResourceGroup": "ODK-RG",
     "CDNProfileName": "odkcdn",
-    "CDNEndpointName": "odkcdn"
+    "CDNEndpointName": "odkcdn",
+    "VerizonConsoleID": "590CA",
+    "VerizonConsoleKey": "55388d0c-d217-4abc-8a07-87a3610e0406",
+    "VerizonCDNHostname": "odkoriginshield.azureedge.net"
   }
 }
