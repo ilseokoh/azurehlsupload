@@ -19,7 +19,7 @@ namespace AzureHLSUploader
         static string clientid = CloudConfigurationManager.GetSetting("VerizonConsoleID");
         static string cdnhostname = CloudConfigurationManager.GetSetting("VerizonCDNHostname");
 
-        [FunctionName("TimerTriggerCSharp")]
+        [FunctionName("VerizonPreload")]
         public async static Task Run([TimerTrigger("0 * * * * *")]TimerInfo myTimer,
                                 [Table(tableName: "preloadlog", Connection = "AzureWebJobsStorage")]CloudTable logtable,
                                 [Queue(queueName: "preloadqueue", Connection = "AzureWebJobsStorage")]CloudQueue preloadqueue,
@@ -62,8 +62,8 @@ namespace AzureHLSUploader
                     log.Info($"Preload requested : {uri.AbsolutePath}");
                     count += 1;
                 }
-            } while (count < 150);
-            //} while (count < 700);
+            //} while (count < 150);
+            } while (count < 700);
 
             log.Info($"------ Preload complete: {count}");
         }

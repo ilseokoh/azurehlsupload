@@ -110,8 +110,8 @@ namespace AzureHLSUploader
                     };
 
                     // preload for 10 pages
-                    //if (i < 10)
-                    if (i < 2)
+                    if (i < 10)
+                    //if (i < 2)
                     {
                         uploaditems.NeedPreload = true;
                         entrylog.PreloadRequestCount += uploaditems.Items.Count;
@@ -161,7 +161,7 @@ namespace AzureHLSUploader
                     
                     var stream = await client.GetStreamAsync(uri);
                     // Retrieve reference to a blob named "myblob".
-                    CloudBlockBlob blockBlob = container.GetBlockBlobReference(path + "/" + filename);
+                    CloudBlockBlob blockBlob = container.GetBlockBlobReference(path + filename);
                     await blockBlob.UploadFromStreamAsync(stream);
                 }
 
