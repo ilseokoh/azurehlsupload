@@ -141,17 +141,6 @@ namespace AzureHLSUploader
                 // Copy to secondary storage
                 CloudBlockBlob secondaryBlockBlob = secondaryContainer.GetBlockBlobReference(path);
                 await secondaryBlockBlob.UploadFromByteArrayAsync(bytes, 0, bytes.Length);
-
-                // Copy to primary storage
-                //var stream = await client.GetStreamAsync(url);
-                //CloudBlockBlob blockBlob = container.GetBlockBlobReference(path);
-                //await blockBlob.UploadFromStreamAsync(stream);
-
-                // Copy to secondary storage
-                //stream.Seek(0, System.IO.SeekOrigin.Begin);
-                //var secondStream = await client.GetStreamAsync(uri);
-                //CloudBlockBlob secondaryBlockBlob = secondaryContainer.GetBlockBlobReference(path);
-                //await secondaryBlockBlob.UploadFromStreamAsync(secondStream);
             }
         }
     }

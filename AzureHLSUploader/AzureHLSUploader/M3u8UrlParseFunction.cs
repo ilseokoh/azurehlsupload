@@ -159,16 +159,6 @@ namespace AzureHLSUploader
                 
                 using (HttpClient client = new HttpClient())
                 {
-                    //// Copy to primary storage
-                    //var stream = await client.GetStreamAsync(uri);
-                    //CloudBlockBlob blockBlob = container.GetBlockBlobReference(path + filename);
-                    //await blockBlob.UploadFromStreamAsync(stream);
-
-                    //// Copy to secondarystorage
-                    //var secondStream = await client.GetStreamAsync(uri);
-                    //CloudBlockBlob secondaryBlockBlob = secondaryContainer.GetBlockBlobReference(path + filename);
-                    //await secondaryBlockBlob.UploadFromStreamAsync(secondStream);
-
                     // download
                     byte[] bytes = await client.GetByteArrayAsync(uri);
 
