@@ -1,10 +1,11 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "{AzureWebJobsStorage}",
-    "AzureWebJobsDashboard": "{AzureWebJobsDashboard}",
-    "VerizonConsoleID": "{VerizonConsoleID}",
-    "VerizonConsoleKey": "{VerizonConsoleKey}",
-    "VerizonCDNHostname": "{VerizonCDNHostname}"
+    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=origin01;AccountKey=4KyTbZtllL7E/lLehwTLkLQcTIEquARj2CPUmayUURgoZnAL4wsGBX3FDoU3vHY97QI5eVNPLaOcApj/IzuYVQ==;EndpointSuffix=core.windows.net",
+    "AzureWebJobsDashboard": "DefaultEndpointsProtocol=https;AccountName=origin01;AccountKey=4KyTbZtllL7E/lLehwTLkLQcTIEquARj2CPUmayUURgoZnAL4wsGBX3FDoU3vHY97QI5eVNPLaOcApj/IzuYVQ==;EndpointSuffix=core.windows.net",
+    "VerizonConsoleID": "590CA",
+    "VerizonConsoleKey": "55388d0c-d217-4abc-8a07-87a3610e0406",
+    "VerizonCDNHostname": "odkoriginshield.azureedge.net",
+    "SecondStorage": "DefaultEndpointsProtocol=https;AccountName=origin02;AccountKey=o7WJJeEEDYKx0sp8hooN2YnM5JXGp8PAMwbrjlDYN99YoCvBoUNRdDCct2D1AD7g6mLphnVJvKEYE10JhvK+yg==;EndpointSuffix=core.windows.net"
   }
 }

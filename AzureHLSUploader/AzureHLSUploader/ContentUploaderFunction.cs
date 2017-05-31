@@ -57,7 +57,6 @@ namespace AzureHLSUploader
                     entrylog.Duration = DateTime.UtcNow.Subtract(startTime).TotalSeconds;
 
                     log.Info($"upload complete: {item}");
-                    
                 }
                 catch(Exception ex)
                 {
@@ -91,7 +90,7 @@ namespace AzureHLSUploader
             var errorcount = logtable.ExecuteQuery(uploaditemquery).Where(x => x.IsSuccess == false).Count();
 
             if (m3u8entrylog == null) throw new InvalidOperationException("there is no m3u8 entry log on the table.");
-            m3u8entrylog.UploadedTsCount = uploadcount;
+            m3u8entrylog.UploadedCount = uploadcount;
             // check upload complete
             if (m3u8entrylog.TotlaFileCount == uploadcount) m3u8entrylog.IsUploadComplete = true;
             // check error count
@@ -115,13 +114,17 @@ namespace AzureHLSUploader
 
         private async static Task UploadBlob(string url)
         {
+            // Primary Storage
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("AzureWebJobsStorage"));
-
-            // Create the blob client.
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
-            // Retrieve reference to a previously created container.
             CloudBlobContainer container = blobClient.GetContainerReference("webroot");
+            await container.CreateIfNotExistsAsync();
+
+            // Secondary Storage
+            CloudStorageAccount secondaryStorageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("SecondStorage"));
+            CloudBlobClient secondaryBlobClient = secondaryStorageAccount.CreateCloudBlobClient();
+            CloudBlobContainer secondaryContainer = secondaryBlobClient.GetContainerReference("webroot");
+            await secondaryContainer.CreateIfNotExistsAsync();
 
             Uri uri = new Uri(url);
             string path = uri.AbsolutePath.Substring(1);
@@ -129,10 +132,26 @@ namespace AzureHLSUploader
             using (HttpClient client = new HttpClient())
             {
                 // download
-                var stream = await client.GetStreamAsync(url);
+                byte[] bytes = await client.GetByteArrayAsync(url);
+
+                // Copy to primary storage
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(path);
-                // upload
-                await blockBlob.UploadFromStreamAsync(stream);
+                await blockBlob.UploadFromByteArrayAsync(bytes, 0, bytes.Length);
+
+                // Copy to secondary storage
+                CloudBlockBlob secondaryBlockBlob = secondaryContainer.GetBlockBlobReference(path);
+                await secondaryBlockBlob.UploadFromByteArrayAsync(bytes, 0, bytes.Length);
+
+                // Copy to primary storage
+                //var stream = await client.GetStreamAsync(url);
+                //CloudBlockBlob blockBlob = container.GetBlockBlobReference(path);
+                //await blockBlob.UploadFromStreamAsync(stream);
+
+                // Copy to secondary storage
+                //stream.Seek(0, System.IO.SeekOrigin.Begin);
+                //var secondStream = await client.GetStreamAsync(uri);
+                //CloudBlockBlob secondaryBlockBlob = secondaryContainer.GetBlockBlobReference(path);
+                //await secondaryBlockBlob.UploadFromStreamAsync(secondStream);
             }
         }
     }

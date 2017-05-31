@@ -37,12 +37,12 @@ namespace AzureHLSUploader
                 {
                     url = status.Url,
                     fileCount = status.TotlaFileCount,
-                    completeCount = status.UploadedTsCount,
+                    completeCount = status.UploadedCount,
                     hasError = status.HasError,
                 };
 
                 if (status.TotlaFileCount == 0) statusItem.progress = 0;
-                else statusItem.progress = ((decimal)status.UploadedTsCount / (decimal)status.TotlaFileCount);
+                else statusItem.progress = ((decimal)status.UploadedCount / (decimal)status.TotlaFileCount);
 
                 return req.CreateResponse(HttpStatusCode.OK, statusItem, JsonMediaTypeFormatter.DefaultMediaType);
             }

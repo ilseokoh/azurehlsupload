@@ -25,7 +25,6 @@ namespace AzureHLSUploader
                                 [Table(tableName: "uploadlog", Connection = "AzureWebJobsStorage")]CloudTable uploadlog,
                                 TraceWriter log)
         {
-
             RequestItem reqItem = null;
             try
             {
@@ -134,14 +133,17 @@ namespace AzureHLSUploader
 
         private async static Task UploadBlob(List<string> items, CloudTable uploadlog, string rootlogkey)
         {
+            // Primary Storage
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("AzureWebJobsStorage"));
-
-            // Create the blob client.
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
-            // Retrieve reference to a previously created container.
             CloudBlobContainer container = blobClient.GetContainerReference("webroot");
             await container.CreateIfNotExistsAsync();
+
+            // Secondary Storage
+            CloudStorageAccount secondaryStorageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("SecondStorage"));
+            CloudBlobClient secondaryBlobClient = secondaryStorageAccount.CreateCloudBlobClient();
+            CloudBlobContainer secondaryContainer = secondaryBlobClient.GetContainerReference("webroot");
+            await secondaryContainer.CreateIfNotExistsAsync();
 
             foreach (var item in items)
             {
@@ -155,14 +157,28 @@ namespace AzureHLSUploader
 
                 DateTime startTime = DateTime.UtcNow;
                 
-
                 using (HttpClient client = new HttpClient())
                 {
-                    
-                    var stream = await client.GetStreamAsync(uri);
-                    // Retrieve reference to a blob named "myblob".
+                    //// Copy to primary storage
+                    //var stream = await client.GetStreamAsync(uri);
+                    //CloudBlockBlob blockBlob = container.GetBlockBlobReference(path + filename);
+                    //await blockBlob.UploadFromStreamAsync(stream);
+
+                    //// Copy to secondarystorage
+                    //var secondStream = await client.GetStreamAsync(uri);
+                    //CloudBlockBlob secondaryBlockBlob = secondaryContainer.GetBlockBlobReference(path + filename);
+                    //await secondaryBlockBlob.UploadFromStreamAsync(secondStream);
+
+                    // download
+                    byte[] bytes = await client.GetByteArrayAsync(uri);
+
+                    // Copy to primary storage
                     CloudBlockBlob blockBlob = container.GetBlockBlobReference(path + filename);
-                    await blockBlob.UploadFromStreamAsync(stream);
+                    await blockBlob.UploadFromByteArrayAsync(bytes, 0, bytes.Length);
+
+                    // Copy to secondary storage
+                    CloudBlockBlob secondaryBlockBlob = secondaryContainer.GetBlockBlobReference(path + filename);
+                    await secondaryBlockBlob.UploadFromByteArrayAsync(bytes, 0, bytes.Length);
                 }
 
                 entrylog.IsSuccess = true;
@@ -171,41 +187,6 @@ namespace AzureHLSUploader
                 TableOperation insertOperation = TableOperation.InsertOrMerge(entrylog);
                 uploadlog.Execute(insertOperation);
             }
-        }
-
-        private async static Task UploadBlob(M3u8Entry entry)
-        {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("AzureWebJobsStorage"));
-
-            // Create the blob client.
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
-            // Retrieve reference to a previously created container.
-            CloudBlobContainer container = blobClient.GetContainerReference("webroot");
-            await container.CreateIfNotExistsAsync();
-
-            string path = entry.Path;
-            if (path.StartsWith("/")) path = path.Substring(1);
-
-            foreach (var playlist in entry.Playlists)
-            {
-                using (HttpClient client = new HttpClient())
-                {
-                    var stream = await client.GetStreamAsync(playlist.Url);
-                    // Retrieve reference to a blob named "myblob".
-                    CloudBlockBlob blockBlob = container.GetBlockBlobReference(path + "/" + playlist.Filename);
-                    await blockBlob.UploadFromStreamAsync(stream);
-                }
-            }
-
-            // upload itself. 
-            using (HttpClient client = new HttpClient())
-            {
-                var stream = await client.GetStreamAsync(entry.Url);
-                CloudBlockBlob blockBlob = container.GetBlockBlobReference(path + "/" + entry.Filename);
-                await blockBlob.UploadFromStreamAsync(stream);
-            }
-
         }
     }
 
@@ -236,7 +217,7 @@ namespace AzureHLSUploader
 
         public int TotlaFileCount { get; set; }
 
-        public int UploadedTsCount { get; set; }
+        public int UploadedCount { get; set; }
 
         public int PreloadRequestCount { get; set; }
 

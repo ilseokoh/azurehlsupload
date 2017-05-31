@@ -40,17 +40,17 @@ namespace AzureHLSUploader
                     {
                         url = x.Url,
                         fileCount = x.TotlaFileCount,
-                        completeCount = x.UploadedTsCount,
+                        completeCount = x.UploadedCount,
                         hasError = x.HasError,
-                        progress = (x.TotlaFileCount == 0 ? 0 : ((decimal)x.UploadedTsCount / (decimal)x.TotlaFileCount))
+                        progress = (x.TotlaFileCount == 0 ? 0 : ((decimal)x.UploadedCount / (decimal)x.TotlaFileCount))
                     }).ToList(),
                     errorList = errorLogs.Select(x => new itemStatus
                     {
                         url = x.Url,
                         fileCount = x.TotlaFileCount,
-                        completeCount = x.UploadedTsCount,
+                        completeCount = x.UploadedCount,
                         hasError = x.HasError,
-                        progress = (x.TotlaFileCount == 0 ? 0 : ((decimal)x.UploadedTsCount / (decimal)x.TotlaFileCount))
+                        progress = (x.TotlaFileCount == 0 ? 0 : ((decimal)x.UploadedCount / (decimal)x.TotlaFileCount))
                     }).ToList()
                 };
 
