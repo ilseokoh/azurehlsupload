@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M3u8Parser", "M3u8Parser\M3
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureHLSUploader", "AzureHLSUploader\AzureHLSUploader.csproj", "{FA41F485-7590-4EF1-8362-5A4108B97283}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureHLSErrorCollector", "AzureHLSErrorCollector\AzureHLSErrorCollector.csproj", "{40D8C271-C7A7-4FCC-9045-EC769E16ED48}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M3u8ParserSample", "M3u8ParserSample\M3u8ParserSample.csproj", "{478975F4-BB07-4588-B1B5-FD8B5FAEC2CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{FA41F485-7590-4EF1-8362-5A4108B97283}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA41F485-7590-4EF1-8362-5A4108B97283}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA41F485-7590-4EF1-8362-5A4108B97283}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40D8C271-C7A7-4FCC-9045-EC769E16ED48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40D8C271-C7A7-4FCC-9045-EC769E16ED48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40D8C271-C7A7-4FCC-9045-EC769E16ED48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40D8C271-C7A7-4FCC-9045-EC769E16ED48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{478975F4-BB07-4588-B1B5-FD8B5FAEC2CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{478975F4-BB07-4588-B1B5-FD8B5FAEC2CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{478975F4-BB07-4588-B1B5-FD8B5FAEC2CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{478975F4-BB07-4588-B1B5-FD8B5FAEC2CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

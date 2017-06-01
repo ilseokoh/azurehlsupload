@@ -34,7 +34,8 @@ namespace AzureHLSUploader
                 await uploadqueue.AddMessageAsync(msg);
 
                 M3u8PaserLogEntry entrylog = new M3u8PaserLogEntry(requestItem.primaryUrl);
-                // root m3u8(1) + secondary m3u8 count + playlist count
+                entrylog.OriginRequest = body;
+
                 TableOperation insertOperation = TableOperation.InsertOrMerge(entrylog);
                 uploadlogtable.Execute(insertOperation);
 

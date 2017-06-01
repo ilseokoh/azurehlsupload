@@ -39,7 +39,7 @@ namespace AzureHLSUploader
             M3u8Parser parser;
             try
             {
-                if (!reqItem.primaryUrl.ToLower().EndsWith(".m3u8")) throw new ArgumentException("url must be m3u8.");
+                if (string.IsNullOrEmpty(reqItem.primaryUrl ) || !reqItem.primaryUrl.ToLower().EndsWith(".m3u8") || !reqItem.primaryUrl.ToLower().StartsWith("http")) throw new ArgumentException("url must be m3u8.");
 
                 parser = new M3u8Parser(reqItem.primaryUrl);
                 var entry = await parser.ParseEntry();
@@ -216,6 +216,8 @@ namespace AzureHLSUploader
         public bool IsUploadComplete { get; set; }
 
         public bool HasError { get; set; }
+
+        public string OriginRequest { get; set; }
     }
 
 }
