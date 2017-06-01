@@ -22,9 +22,7 @@ namespace AzureHLSErrorCollector
 
 
             // Check result and log to root table log 
-            //TableQuery<M3u8PaserLogEntry> errorlistquery = new TableQuery<M3u8PaserLogEntry>().Where(TableQuery.GenerateFilterConditionForBool("HasError", QueryComparisons.Equal, true));
-            TableQuery<M3u8PaserLogEntry> errorlistquery = new TableQuery<M3u8PaserLogEntry>().Where(TableQuery.GenerateFilterCondition
-                ("Url", QueryComparisons.Equal, "https://s3-us-west-2.amazonaws.com/odk-hls-seg/drama/love-affair-agent/love-affair-agent-e01/playlist_1080.m3u8"));
+            TableQuery<M3u8PaserLogEntry> errorlistquery = new TableQuery<M3u8PaserLogEntry>().Where(TableQuery.GenerateFilterConditionForBool("HasError", QueryComparisons.Equal, true));
             var items = rootlogtable.ExecuteQuery(errorlistquery).ToList(); 
 
             foreach(var m3u8entrylog in items)

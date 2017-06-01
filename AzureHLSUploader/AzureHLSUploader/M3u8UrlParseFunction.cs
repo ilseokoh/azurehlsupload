@@ -63,10 +63,22 @@ namespace AzureHLSUploader
                 // itself 
                 uploadItems.Add(entry.Url);
 
+                // Primary Storage
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("AzureWebJobsStorage"));
+                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+                CloudBlobContainer container = blobClient.GetContainerReference("webroot");
+                await container.CreateIfNotExistsAsync();
+
+                // Secondary Storage
+                CloudStorageAccount secondaryStorageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("SecondStorage"));
+                CloudBlobClient secondaryBlobClient = secondaryStorageAccount.CreateCloudBlobClient();
+                CloudBlobContainer secondaryContainer = secondaryBlobClient.GetContainerReference("webroot");
+                await secondaryContainer.CreateIfNotExistsAsync();
+
                 // retry 3 times with 1 sec delay
                 await RetryHelper.RetryOnExceptionAsync(3, TimeSpan.FromSeconds(1), async () =>
                 {
-                    await UploadBlob(uploadItems, uploadlog, entry.Url);
+                    await UploadBlob(uploadItems, uploadlog, entry.Url, container, secondaryContainer);
                 });
 
                 entrylog.IsPlaylistUploadComplete = true;
@@ -131,19 +143,9 @@ namespace AzureHLSUploader
             return reqcount;
         }
 
-        private async static Task UploadBlob(List<string> items, CloudTable uploadlog, string rootlogkey)
+        private async static Task UploadBlob(List<string> items, CloudTable uploadlog, string rootlogkey, CloudBlobContainer container, CloudBlobContainer secondaryContainer)
         {
-            // Primary Storage
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("AzureWebJobsStorage"));
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference("webroot");
-            await container.CreateIfNotExistsAsync();
-
-            // Secondary Storage
-            CloudStorageAccount secondaryStorageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("SecondStorage"));
-            CloudBlobClient secondaryBlobClient = secondaryStorageAccount.CreateCloudBlobClient();
-            CloudBlobContainer secondaryContainer = secondaryBlobClient.GetContainerReference("webroot");
-            await secondaryContainer.CreateIfNotExistsAsync();
+            
 
             foreach (var item in items)
             {
