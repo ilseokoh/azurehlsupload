@@ -15,9 +15,7 @@ namespace AzureHLSUploader
 {
     public static class VerizonPreloadFunction
     {
-        static string token = CloudConfigurationManager.GetSetting("VerizonConsoleKey");
-        static string clientid = CloudConfigurationManager.GetSetting("VerizonConsoleID");
-        static string cdnhostname = CloudConfigurationManager.GetSetting("VerizonCDNHostname");
+
 
         [FunctionName("VerizonPreload")]
         public async static Task Run([TimerTrigger("0 * * * * *")]TimerInfo myTimer,
@@ -30,6 +28,8 @@ namespace AzureHLSUploader
 
             // create log table
             await logtable.CreateIfNotExistsAsync();
+
+
 
             int count = 0;
             do
@@ -55,11 +55,11 @@ namespace AzureHLSUploader
                 foreach (var url in uploaditem.Items)
                 {
                     Uri uri = new Uri(url);
-                    string asset = "http://" + cdnhostname + uri.AbsolutePath;
+                    string asset = "http://odkoriginshield.azureedge.net" + uri.AbsolutePath;
 
                     await LoadAsset(asset, logtable, uploaditem.Url);
 
-                    log.Info($"Preload requested : {uri.AbsolutePath}");
+                    log.Info($"Preload requested : {asset}");
                     count += 1;
                 }
             } while (count < 150);
@@ -70,17 +70,18 @@ namespace AzureHLSUploader
 
         private async static Task LoadAsset(string asset, CloudTable logtable, string rooturl)
         {
+
             var content = new VerizonPreloadContent
             {
                 MediaPath = asset,
                 MediaType = "3"
             };
 
-            Uri uri = new Uri("https://api.edgecast.com/v2/mcc/customers/" + clientid + "/edge/load");
+            Uri uri = new Uri("https://api.edgecast.com/v2/mcc/customers/590CA/edge/load");
 
             using (WebClient client = new WebClient())
             {
-                client.Headers.Add("Authorization", "TOK: " + token);
+                client.Headers.Add("Authorization", "TOK: 55388d0c-d217-4abc-8a07-87a3610e0406");
                 client.Headers.Add("Content-Type", "application/json");
                 client.Headers.Add("Accept", "application/json");
                 var bodyText = JsonConvert.SerializeObject(content);
@@ -98,6 +99,8 @@ namespace AzureHLSUploader
                     //handle the exception here
                     entrylog.IsSuccess = false;
                     entrylog.ErrorMessage = ex.ToString();
+
+                    throw new InvalidOperationException("Request Error: " + ex.ToString());
                 }
 
                 TableOperation updateOperation = TableOperation.InsertOrMerge(entrylog);
