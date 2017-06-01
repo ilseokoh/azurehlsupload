@@ -17,7 +17,7 @@ namespace AzureHLSErrorCollector
     public static class ErrorCollectorFunction
     {
         [FunctionName("ErrorCollector")]
-        public static async Task Run([TimerTrigger("0 */2 * * * *")]TimerInfo myTimer,
+        public static async Task Run([TimerTrigger("0 */5 * * * *")]TimerInfo myTimer,
             [Queue(queueName: "retryqueue", Connection = "AzureWebJobsStorage")]CloudQueue retryqueue, 
             TraceWriter log)
         {

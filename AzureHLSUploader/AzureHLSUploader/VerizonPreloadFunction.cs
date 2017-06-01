@@ -62,8 +62,8 @@ namespace AzureHLSUploader
                     log.Info($"Preload requested : {asset}");
                     count += 1;
                 }
-            } while (count < 150);
-            //} while (count < 700);
+            //} while (count < 150);
+            } while (count < 700);
 
             log.Info($"------ Preload complete: {count}");
         }

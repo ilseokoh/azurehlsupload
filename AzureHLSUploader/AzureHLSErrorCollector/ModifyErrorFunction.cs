@@ -13,16 +13,23 @@ namespace AzureHLSErrorCollector
     public static class ModifyErrorFunction
     {
         [FunctionName("CorrectError")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "correct")]HttpRequestMessage req,
+        //public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "correct")]HttpRequestMessage req,
+        public static async Task Run([TimerTrigger("0 */5 * * * *")]TimerInfo myTimer,
             [Table(tableName: "uploadlog", Connection = "AzureWebJobsStorage")]CloudTable logtable,
             [Table(tableName: "m3u8log", Connection = "AzureWebJobsStorage")]CloudTable rootlogtable,
             TraceWriter log)
         {
-            log.Info("C# HTTP trigger function processed a request.");
+            log.Info("Check Upload progress");
 
 
             // Check result and log to root table log 
-            TableQuery<M3u8PaserLogEntry> errorlistquery = new TableQuery<M3u8PaserLogEntry>().Where(TableQuery.GenerateFilterConditionForBool("HasError", QueryComparisons.Equal, true));
+            TableQuery<M3u8PaserLogEntry> errorlistquery = new TableQuery<M3u8PaserLogEntry>().Where(
+                TableQuery.CombineFilters(
+                    TableQuery.GenerateFilterConditionForBool("HasError", QueryComparisons.Equal, true),
+                    TableOperators.Or,
+                    TableQuery.GenerateFilterConditionForBool("IsUploadComplete", QueryComparisons.Equal, false))
+                );
+
             var items = rootlogtable.ExecuteQuery(errorlistquery).ToList(); 
 
             foreach(var m3u8entrylog in items)
@@ -42,9 +49,9 @@ namespace AzureHLSErrorCollector
 
                 TableOperation updateOperation = TableOperation.InsertOrMerge(m3u8entrylog);
                 await rootlogtable.ExecuteAsync(updateOperation);
-            }
 
-            return req.CreateResponse(HttpStatusCode.OK, "Count: " + items.Count);
+                log.Info(m3u8entrylog.Url);
+            }
         }
     }
 
