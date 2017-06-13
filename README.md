@@ -12,7 +12,7 @@ This application upload HLS streaming contents to Azure Blob Storage using Azure
 
 ## Diagram
 
-[Block Diagram](images/upload-diagram.png)
+![Block Diagram](images/upload-diagram.png)
 
 ## Process
 

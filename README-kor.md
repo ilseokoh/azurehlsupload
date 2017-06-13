@@ -8,7 +8,7 @@
 
 ## 다이어그램
 
-[Block Diagram](images/upload-diagram.png)
+![Block Diagram](images/upload-diagram.png)
 
 ## 작동 순서
 
