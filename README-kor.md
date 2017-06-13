@@ -2,6 +2,10 @@
 
 본 애플리케이션은 Azure Functions를 사용하여 HLS 포멧으로 만들어진 동영상 스트리밍 컨텐츠를 Azure Blob 스토리지로 복사하고 컨텐츠의 시작 부분을 CDN에 Pre-load 요청을 한다.
 
+## 개발환경 
+
+[Visual Studio 2017 Preview](https://www.visualstudio.com/vs/preview/) (2017-06-13)와 [Azure Funtions Tools for Visual Studio 2017](https://marketplace.visualstudio.com/items?itemName=AndrewBHall-MSFT.AzureFunctionToolsforVisualStudio2017) 을 설치해야 한다. 
+
 ## 다이어그램
 
 [Block Diagram](images/upload-diagram.png)
