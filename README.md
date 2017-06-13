@@ -1,3 +1,5 @@
+[한국어 버전](README-kor.md)
+
 # Upload HLS Streaming contents to Azure Blob Storage and request CDN pre-load with Azure Functions
 
 This application upload HLS streaming contents to Azure Blob Storage using Azure Functions and request CDN pre-loading using Azure CDN REST API. 
